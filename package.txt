@@ -1,0 +1,1 @@
+.\jpackage --type exe --name wx-live-mitm --input F:\ideaProject\mitm\target --main-jar mitm-0.0.1-SNAPSHOT.jar --java-options "-Dserver.port=9998" --win-console --win-dir-chooser --win-shortcut --win-shortcut-prompt --dest F:\ideaProject\mitm

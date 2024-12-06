@@ -1,0 +1,9 @@
+WeChat:
+    path: D:\Program Files (x86)\Tencent\WeChat\WeChat.exe
+    mitmPath: D:\Program Files\res-downloader\res-downloader.exe
+    uploadLiveUrl: http://112.53.97.238:9139/api/uploadUrl
+appium:
+    server: http://127.0.0.1:4727/wd/hub/
+
+
+

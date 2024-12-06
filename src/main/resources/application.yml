@@ -1,0 +1,10 @@
+server:
+    port: 9998
+spring:
+    application:
+        name: mitm
+    profiles:
+        active: dev
+logging:
+    config: classpath:logback-spring.xml
+
