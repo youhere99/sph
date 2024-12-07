@@ -88,9 +88,12 @@ public class WechatController {
                 }
                 driver.quit();
                 if (weChatContext.getWindowHandle() != null) {
-                    DesiredCapabilities capabilities2 = new DesiredCapabilities();
-                    capabilities2.setCapability("appTopLevelWindow", weChatContext.getWindowHandle());
-                    windowsDriver = new WindowsDriver(new URL(appiumServer), capabilities2);
+                    try {
+                        windowsDriver = activateWindow();
+                    } catch (Exception e2) {
+                        windowsDriver = findWindow();
+                        windowsDriver = activateWindow();
+                    }
                 } else {
                     windowsDriver = findWindow();
                     windowsDriver = activateWindow();
