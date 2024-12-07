@@ -26,6 +26,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -72,27 +73,31 @@ public class WechatController {
                 capabilities.setCapability("platformName", "windows");
                 capabilities.setCapability("deviceName", "WindowsPC");
                 WindowsDriver driver = new WindowsDriver(new URL(appiumServer), capabilities);
-                Screen screen = new Screen();
-                String jarPath = new ApplicationHome().getDir().getAbsolutePath();
-                screen.wait(jarPath + "\\wechat-img\\video-toolBar.png", 10);
-                screen.click();
+                try {
+                    Screen screen = new Screen();
+                    String jarPath = new ApplicationHome().getDir().getAbsolutePath();
+                    screen.wait(jarPath + "\\wechat-img\\video-toolBar.png", 5);
+                    screen.click();
+                } catch (Exception e1) {
+                    WebElement webElement = driver.findElement(By.xpath("/Window[@Name='微信']//Pane/ToolBar//Pane/Button[@Name='视频号']"));
+                    if (webElement != null && webElement.isDisplayed()) {
+                        webElement.click();
+                    } else {
+                        throw new Exception("未找到视频号按扭");
+                    }
+                }
                 driver.quit();
                 if (weChatContext.getWindowHandle() != null) {
                     DesiredCapabilities capabilities2 = new DesiredCapabilities();
                     capabilities2.setCapability("appTopLevelWindow", weChatContext.getWindowHandle());
                     windowsDriver = new WindowsDriver(new URL(appiumServer), capabilities2);
                 } else {
-                    DesiredCapabilities capabilities2 = new DesiredCapabilities();
-                    capabilities2.setCapability("app", "Root");
-                    windowsDriver = new WindowsDriver(new URL(appiumServer), capabilities2);
-                    windowsDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(3));
-                    WebElement webElement = windowsDriver.findElement(By.xpath("//Pane[@Name='微信']"));
-                    String newWindowHandle = Integer.toHexString(Integer.parseInt(webElement.getAttribute("NativeWindowHandle")));
-                    weChatContext.setWindowHandle(newWindowHandle);
+                    windowsDriver = findWindow();
+                    windowsDriver = activateWindow();
                 }
 
 
-                List<WebElement> webElements = windowsDriver.findElements(By.xpath("//Pane[@Name='微信']/Document//Group[1]/Edit[@Name='搜索']"));
+                List<WebElement> webElements = windowsDriver.findElements(By.xpath("//Pane[@Name='微信']/Document//Group/Edit[@Name='搜索']"));
                 if (webElements != null && webElements.size() > 0) {
                     webElements.get(0).click();
                     Thread.sleep(1000);
@@ -100,7 +105,7 @@ public class WechatController {
                     Thread.sleep(1000);
                     RobotUtil.keyPressString(weChatContext.getNickNameQueue().peek());
                     RobotUtil.keyClick(KeyEvent.VK_ENTER);
-                    Thread.sleep(3000);
+                    Thread.sleep(5000);
                     WebElement elements3 = windowsDriver.findElement(By.xpath("//Pane[@Name='微信']/Document/Image[1]"));
                     if (elements3 != null) {
                         elements3.click();
@@ -117,9 +122,14 @@ public class WechatController {
                             log.info("未找到直播中--" + weChatContext.getNickNameQueue().poll());
                         }
                     }
+                } else {
+                    log.info("未找到搜索框--" + weChatContext.getNickNameQueue().peek());
+                    weChatContext.getNickNameQueue().poll();
+                    weChatContext.setCurrentNickName(null);
+                    weChatContext.setWindowHandle(null);
                 }
             } catch (Exception e) {
-                log.error("{} 账号自动化异常--" + weChatContext.getNickNameQueue().peek(),e);
+                log.error("{} 账号自动化异常--" + weChatContext.getNickNameQueue().peek(), e);
                 weChatContext.getNickNameQueue().poll();
                 weChatContext.setCurrentNickName(null);
                 weChatContext.setWindowHandle(null);
@@ -156,5 +166,23 @@ public class WechatController {
         log.info("上传请求参数 " + jsonObject.toJSONString());
         cn.hutool.http.HttpRequest.post(uploadUrl).header(Header.CONTENT_TYPE.name(), "application/json").header("Key", "qweasd123").body(jsonObject.toJSONString()).executeAsync();
         weChatContext.setCurrentNickName(null);
+    }
+
+    private WindowsDriver activateWindow() throws MalformedURLException {
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        capabilities.setCapability("appTopLevelWindow", weChatContext.getWindowHandle());
+        return new WindowsDriver(new URL(appiumServer), capabilities);
+    }
+
+    private WindowsDriver findWindow() throws FindFailed, IOException, InterruptedException {
+        WindowsDriver windowsDriver = null;
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        capabilities.setCapability("app", "Root");
+        windowsDriver = new WindowsDriver(new URL(appiumServer), capabilities);
+        windowsDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(3));
+        WebElement webElement = windowsDriver.findElement(By.xpath("//Pane[@Name='微信']"));
+        String newWindowHandle = Integer.toHexString(Integer.parseInt(webElement.getAttribute("NativeWindowHandle")));
+        weChatContext.setWindowHandle(newWindowHandle);
+        return windowsDriver;
     }
 }
