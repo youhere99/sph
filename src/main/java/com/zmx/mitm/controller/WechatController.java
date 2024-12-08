@@ -116,26 +116,26 @@ public class WechatController {
                         clearList();
                         List<WebElement> elements4 = windowsDriver.findElements(By.xpath("//Pane[@Name='微信']/Document//Text[@Name='直播中']"));
                         if (elements4 != null && elements4.size() > 0) {
-                            Thread.sleep(3000);
+                            Thread.sleep(5000);
                             elements4.get(0).click();
                             weChatContext.setCurrentNickName(weChatContext.getNickNameQueue().peek());
-                            Thread.sleep(3000);
+                            Thread.sleep(5000);
                             copyLink();
                         } else {
-                            log.info("未找到直播中--" + weChatContext.getNickNameQueue().poll());
+                            log.info("未找到直播中--" + weChatContext.getNickNameQueue().peek());
+                            clearNickName();
                         }
+                    }else {
+                        log.info("未找到账号--" + weChatContext.getNickNameQueue().peek());
+                        clearNickName();
                     }
                 } else {
                     log.info("未找到搜索框--" + weChatContext.getNickNameQueue().peek());
-                    weChatContext.getNickNameQueue().poll();
-                    weChatContext.setCurrentNickName(null);
-                    weChatContext.setWindowHandle(null);
+                    clearNickName();
                 }
             } catch (Exception e) {
                 log.error("{} 账号自动化异常--" + weChatContext.getNickNameQueue().peek(), e);
-                weChatContext.getNickNameQueue().poll();
-                weChatContext.setCurrentNickName(null);
-                weChatContext.setWindowHandle(null);
+                clearNickName();
             }
         } else {
             log.info("正在自动化账号-- " + weChatContext.getCurrentNickName());
@@ -187,5 +187,11 @@ public class WechatController {
         String newWindowHandle = Integer.toHexString(Integer.parseInt(webElement.getAttribute("NativeWindowHandle")));
         weChatContext.setWindowHandle(newWindowHandle);
         return windowsDriver;
+    }
+
+    private  void clearNickName(){
+        weChatContext.getNickNameQueue().poll();
+        weChatContext.setCurrentNickName(null);
+        weChatContext.setWindowHandle(null);
     }
 }
